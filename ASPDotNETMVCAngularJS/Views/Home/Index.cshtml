@@ -1,0 +1,197 @@
+﻿@model  ASPDotNETMVCAngularJS.Models.Student
+@{
+    ViewBag.Title = "ASP.NET MVC AngularJS";
+}
+<script src="~/Scripts/angular.min.js"></script>
+
+<div ng-app="ASPDotNETMVCAngularJSApp" ng-controller="HomeController">
+    <hr/>
+    <div class="header-info">
+        <label class="">Existing Students List</label>
+        <button class="btn btn-primary pull-right" data-toggle="modal" data-target="#AddModal" ng-click="clearModel()">Add Student</button>
+    </div>
+    <hr/>
+    <br/>
+    <div class="alert alert-success" ng-if="message">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+        {{message}}
+    </div>
+    <div class="table-data">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="names in student">
+                <td>{{ names.Id }}</td>
+                <td>{{ names.Name }}</td>
+                <td>{{ names.Email }}</td>
+                <td>
+                    <button class="btn btn-info" data-toggle="modal" data-target="#EditModal" ng-click="selectUser(names)">Edit</button>
+                </td>
+                <td>
+                    <button class="btn btn-danger" ng-click="DeleteStudent(names)">Delete</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Modal Add modal-->
+    <div class="modal fade" id="AddModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <form name="add_student_form" data-ng-submit="AddStudent()">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                        <h4 class="modal-title">Add Student</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Name</label>
+                            <input type="text" class="form-control" id="fullname" aria-describedby="emailHelp" placeholder="Enter name" ng-model="model.Name" required="required">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Email</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" ng-model="model.Email" required="required">
+                            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-default pull-left">Save</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Edit modal-->
+    <div class="modal fade" id="EditModal" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <form name="update_student_form" data-ng-submit="UpdateStudent()">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                        <h4 class="modal-title">Edit Student</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Student Name</label>
+                            <input type="text" class="form-control" id="fullname" aria-describedby="emailHelp" placeholder="Enter name" ng-model="selectedUser.Name" required="required">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputEmail1">Email</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" ng-model="selectedUser.Email" required="required">
+                            <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary pull-left">Save</button>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    var app = angular.module('ASPDotNETMVCAngularJSApp', []);
+    app.controller('HomeController', function ($scope, $http) {
+
+    $scope.model = @Html.Raw(Json.Encode(Model))
+
+    $http({
+    method: 'GET',
+    url: '@Url.Action("GetStudents", "Home")',
+    headers: {
+    'Content-type': 'application/json'
+}
+}).then(function (response) {
+    debugger;
+    $scope.student = JSON.parse(response.data);
+}, function (error) {
+    console.log(error);
+});
+
+    $scope.AddStudent = function () {
+    $http({
+    method: 'POST',
+    url: '@Url.Action("AddStudent", "Home")',
+    data: $scope.model,
+    headers: {
+    'Content-type': 'application/json'
+}
+}).then(function (response) {
+    $scope.student = JSON.parse(response.data);
+    $scope.message = "Student added successfully";
+
+    $("#AddModal").modal("hide");
+}, function (error) {
+    console.log(error);
+});
+}
+
+    $scope.selectUser = function (names) {
+    $scope.selectedUser = names;
+}
+
+    $scope.UpdateStudent = function () {
+    var eee = $scope.selectedUser;
+    $http({
+    method: 'POST',
+    url: '@Url.Action("UpdateStudent", "Home")',
+    data: $scope.selectedUser,
+    headers: {
+    'Content-type': 'application/json'
+}
+}).then(function (response) {
+    $scope.student = JSON.parse(response.data);
+    $scope.message = "Student updated successfully";
+    $("#EditModal").modal("hide");
+}, function (error) {
+    console.log(error);
+});
+}
+
+    $scope.DeleteStudent = function (names) {
+
+    $http({
+    method: 'POST',
+    url: '@Url.Action("DeleteStudent", "Home")',
+    data: names,
+    headers: {
+    'Content-type': 'application/json'
+}
+}).then(function (response) {
+    $scope.student = JSON.parse(response.data);
+    $scope.message = "Student deleted successfully";
+    $("#EditModal").modal("hide");
+}, function (error) {
+    console.log(error);
+});
+}
+    $scope.clearModel = function () {
+    $scope.model = null;
+
+}
+
+});
+</script>
